@@ -65,6 +65,9 @@ export class Dice {
   }
 
   // PUBLIC FUNTIONS
+  public getFaceEntries(): [number | string, number][] {
+    return Array.from(this.faces.entries());
+  }
 
   public get(face: number | string): number {
     return this.faces.get(face) ?? 0;
