@@ -28,6 +28,7 @@ function parseExpression(arr: string[], n: number): Dice {
 
     // Handle crit (e.g. xcrit, crit)
     let crit: Dice | undefined;
+    let critNorm = 1;
     if (arr[0] === 'x' || arr[0] === 'c') {
       const isXcrit = arr[0] === 'x';
       if (isXcrit) assertToken(arr, 'x');
@@ -41,19 +42,18 @@ function parseExpression(arr: string[], n: number): Dice {
       crit = new Dice();
       for (let i = 0; i < count; i++) {
         const max = finalResult.maxFace();
-        crit.increment(max, finalResult.get(max));
+        crit.setFace(max, finalResult.get(max));
         finalResult = finalResult.deleteFace(max);
       }
 
-      var critNorm = crit.total();
-      //const critNorm = crit.total();
+      critNorm = crit.total();
       crit = op.call(crit, parseBinaryArgument(arg, arr, n));
       critNorm = critNorm ? crit.total() / critNorm : 1;
-      //crit = crit.normalize(critNorm ? crit.total() / critNorm : 1);
     }
 
     // Handle save
     let save: Dice | undefined;
+    var saveNorm = 1;
     if (arr[0] === 's') {
       assertToken(arr, 's');
       assertToken(arr, 'a');
@@ -64,21 +64,31 @@ function parseExpression(arr: string[], n: number): Dice {
       const min = finalResult.minFace();
       save.increment(min > 0 ? min : 1, finalResult.get(min));
 
-      const saveNorm = save.total();
+      saveNorm = save.total();
       finalResult = finalResult.deleteFace(min);
       save = op.call(save, parseBinaryArgument(arg, arr, n));
-      save = save.normalize(saveNorm ? save.total() / saveNorm : 1);
+      saveNorm = saveNorm ? save.total() / saveNorm : 1;
     }
 
-    const norm = finalResult.total();
+    var norm = finalResult.total();
     // logging
     console.log(`OP: ${op.name || '[anonymous]'}`);
     
     finalResult = op.call(finalResult, arg);
     finalResult = finalResult.normalize(norm ? finalResult.total() / norm : 1);
 
-    if (crit) finalResult = finalResult.combine(crit);
-    if (save) finalResult = finalResult.combine(save);
+    if (crit) {
+      crit = crit.normalize(norm ? finalResult.total() / norm : 1);
+      finalResult = finalResult.normalize(critNorm);
+      finalResult = finalResult.combine(crit);
+      norm *= critNorm
+    }
+    if (save) {
+      save = save.normalize(norm ? finalResult.total() / norm : 1);
+      finalResult = finalResult.normalize(saveNorm);
+      finalResult = finalResult.combine(save);
+      norm *= saveNorm;
+    }
 
     op = parseOperation(arr);
   }

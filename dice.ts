@@ -73,6 +73,10 @@ export class Dice {
     return this.faces.get(face) ?? 0;
   }
 
+  public setFace(key: number | string, value: number): void {
+    this.faces.set(key, value);
+  }
+
   public static scalar(value: number): Dice {
     const result = new Dice();
     result.increment(value, 1);
