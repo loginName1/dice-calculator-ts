@@ -70,6 +70,26 @@ function parseExpression(arr: string[], n: number): Dice {
       saveNorm = saveNorm ? save.total() / saveNorm : 1;
     }
 
+    // TODO: Handle miss effects
+    let miss: Dice |undefined;
+    var missNorm = 1;
+    if (arr[0] === 'm') {
+      assertToken(arr, 'm');
+      assertToken(arr, 'i');
+      assertToken(arr, 's');
+      assertToken(arr, 's');
+
+      miss = new Dice();
+      const min = finalResult.minFace();
+      miss.increment(min > 0 ? min : 1, finalResult.get(min));
+
+      missNorm = miss.total();
+      finalResult = finalResult.deleteFace(min);
+
+      miss = op.call(miss, parseBinaryArgument(arg, arr, n));
+      missNorm = missNorm ? miss.total() / missNorm : 1;
+    }
+
     var norm = finalResult.total();
     // logging
     console.log(`OP: ${op.name || '[anonymous]'}`);
@@ -88,6 +108,12 @@ function parseExpression(arr: string[], n: number): Dice {
       finalResult = finalResult.normalize(saveNorm);
       finalResult = finalResult.combine(save);
       norm *= saveNorm;
+    }
+    if (miss) {
+      miss = miss.normalize(norm ? finalResult.total() / norm : 1);
+      finalResult = finalResult.normalize(missNorm);
+      finalResult = finalResult.combine(miss);
+      norm *= missNorm;
     }
 
     op = parseOperation(arr);

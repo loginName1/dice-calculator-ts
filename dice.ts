@@ -251,28 +251,6 @@ export class Dice {
     return result;
   }
 
-  /**public reroll(toReroll: Dice | number): Dice {
-    const rerollDice = typeof toReroll === 'number' ? Dice.scalar(toReroll) : toReroll;
-
-    const rerollSet = new Set(rerollDice.keys());
-    const result = new Dice();
-
-    for (const [face, count] of this.faces.entries()) {
-      if (rerollSet.has(face)) {
-        // Reroll this face: redistribute its weight over the full dice
-        const redistributed = this.normalize(count);
-        for (const [k, v] of redistributed.faces.entries()) {
-          result.increment(k, v);
-        }
-      } else {
-        // Keep original face
-        result.increment(face, count);
-      }
-    }
-
-    return result;
-  }*/
-
   public reroll(toReroll: Dice | number): Dice {
     const rerollDice = typeof toReroll === 'number' ? Dice.scalar(toReroll) : toReroll;
 
