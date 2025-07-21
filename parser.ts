@@ -91,31 +91,29 @@ function parseExpression(arr: string[], n: number): Dice {
     }
 
     var norm = finalResult.total();
-    // logging
-    console.log(`OP: ${op.name || '[anonymous]'}`);
     
     finalResult = op.call(finalResult, arg);
-    finalResult = finalResult.normalize(norm ? finalResult.total() / norm : 1);
+    norm = norm ? finalResult.total() / norm : 1;
 
     if (crit) {
-      crit = crit.normalize(norm ? finalResult.total() / norm : 1);
+      crit = crit.normalize(norm)
       finalResult = finalResult.normalize(critNorm);
       finalResult = finalResult.combine(crit);
       norm *= critNorm
     }
     if (save) {
-      save = save.normalize(norm ? finalResult.total() / norm : 1);
+      save = save.normalize(norm)
       finalResult = finalResult.normalize(saveNorm);
       finalResult = finalResult.combine(save);
       norm *= saveNorm;
     }
     if (miss) {
-      miss = miss.normalize(norm ? finalResult.total() / norm : 1);
+      miss = miss.normalize(norm)
       finalResult = finalResult.normalize(missNorm);
       finalResult = finalResult.combine(miss);
       norm *= missNorm;
     }
-
+    
     op = parseOperation(arr);
   }
 
