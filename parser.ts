@@ -83,46 +83,38 @@ function parseExpression(arr: string[], n: number): Dice {
       saveNorm = saveNorm ? save.total() / saveNorm : 1;
     }
     
+    // Handle half damage on hit (potent cantrip)
+
+    let pc: Dice | undefined;
+    let pcNorm = 1;
+
+    if (arr.length >= 2 && arr[0] === 'p' && arr[1] === 'c') {
+      assertToken(arr, 'p');
+      assertToken(arr, 'c');
+
+      pc = new Dice();
+      const min = finalResult.minFace();
+      pc.increment(min > 0 ? min : 1, finalResult.get(min));
+
+      const missBefore = pc.total();
+      finalResult = finalResult.deleteFace(min);
+
+      pc = op.call(pc, parseBinaryArgument(arg, arr, n)).divideRoundDown(2); // parse the damage
+      console.log("pc after damage parse: ", pc)
+      /**const half = pc instanceof Dice
+        ? pc.divideRoundDown(2)
+        : Dice.scalar(pc).divideRoundDown(2);
+
+      pc = pc.combine(half);*/
+      const missAfter = pc.total();
+      pcNorm = missBefore ? missAfter / missBefore : 1;
+    }
+    
     // Handle miss
     let miss: Dice |undefined;
     var missNorm = 1;
 
     if (arr[0] === 'm') {
-      assertToken(arr, 'm');
-      assertToken(arr, 'i');
-      assertToken(arr, 's');
-      assertToken(arr, 's');
-
-      const isHalfMiss = peek(arr, 'h');
-      if (isHalfMiss) {
-        assertToken(arr, 'h');
-      }
-      // TODO: make missh do half damage
-      const min = finalResult.minFace();
-      miss = new Dice();
-      miss.increment(min > 0 ? min : 1, finalResult.get(min));
-
-      // Total weight before modifying miss
-      missNorm = miss.total();
-
-      finalResult = finalResult.deleteFace(min);
-
-      if (isHalfMiss) {
-        //miss = miss.divideRoundDown(2);
-        const halfHit = miss.divideRoundDown(2);
-        miss = miss.combine(halfHit);
-      } else {
-        miss = op.call(miss, parseBinaryArgument(arg, arr, n));
-      }
-
-      // Total weight after miss has been updated
-      const afterMiss = miss.total();
-      missNorm = missNorm ? afterMiss / missNorm : 1;
-    } 
-    
-  
-
-    /**if (arr[0] === 'm') {
       assertToken(arr, 'm');
       assertToken(arr, 'i');
       assertToken(arr, 's');
@@ -137,10 +129,10 @@ function parseExpression(arr: string[], n: number): Dice {
 
       miss = op.call(miss, parseBinaryArgument(arg, arr, n));
       missNorm = missNorm ? miss.total() / missNorm : 1;
-    }*/
+    }
 
     var norm = finalResult.total();
-    
+
     finalResult = op.call(finalResult, arg);
     norm = norm ? finalResult.total() / norm : 1;
 
@@ -165,6 +157,15 @@ function parseExpression(arr: string[], n: number): Dice {
       missPortion = miss;
       finalResult = finalResult.combine(miss);
       norm *= missNorm;
+    }
+
+    if (pc) {
+      console.log("pc dice: ", pc);
+      pc = pc.normalize(norm)
+      finalResult = finalResult.normalize(pcNorm);
+      //pcPortion = pc;
+      finalResult = finalResult.combine(pc);
+      norm *= pcNorm;
     }
     
     op = parseOperation(arr);
