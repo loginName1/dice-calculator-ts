@@ -32,5 +32,4 @@ function testExpression(expr: string, n: number = 0): void {
 //testExpression('(d20 > d20 + 6 AC 15) * (2d6 + 4) crit (4d6 + 4)');   //WORKS
 //testExpression('(d20 > d20 + 6 AC 15) * (2d6 + 4) xcrit2 (4d6 + 4)'); //WORKS
 
-testExpression('(d20 AC 16) * 2d6 crit(4d6) miss(2d4)');
-//testExpression('(d20 > d20 +13 AC 18) * (2kh1(1d8) + 1d12 + 1d8 + 7) crit (2kh1(2d12 + 4d8 + 7))');
+testExpression('(d20 + 6 AC 15) * (2d6) miss(1d6)');

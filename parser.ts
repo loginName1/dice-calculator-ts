@@ -2,6 +2,15 @@ import { Dice } from './dice'; // adjust path as needed
 
 type DiceOperation = ((this: Dice, other: Dice | number) => Dice) & { unary?: boolean };
 
+type DiceResult = {
+  final: Dice;             // The final output distribution after all modifiers
+  hitRoll?: Dice;          // To-hit roll (e.g., d20 + modifier)
+  hitPortion?: Dice;       // Normal hit contribution
+  critPortion?: Dice;      // Just the critical hit contribution
+  missPortion?: Dice;      // Damage dealt on miss
+  //savePortion?: Dice;      // Damage from saving throws
+  //explodedPortion?: Dice;  // Optional: exploded results (if you add exploding dice)
+};
 
 export function parse(expression: string, n: number = 0): Dice {
   const cleaned = expression.replace(/ /g, '').toLowerCase();
@@ -22,7 +31,10 @@ function parseExpression(arr: string[], n: number): Dice {
 
   let op = parseOperation(arr);
   let finalResult = result;
-
+  let hitRoll: Dice | undefined;
+  let critPortion: Dice | undefined;
+  let missPortion: Dice | undefined;
+  //let savePortion: Dice | undefined;
   while (op != null) {
     const arg = !op.unary ? parseArgument(arr, n) : finalResult;
 
@@ -48,6 +60,7 @@ function parseExpression(arr: string[], n: number): Dice {
 
       critNorm = crit.total();
       crit = op.call(crit, parseBinaryArgument(arg, arr, n));
+
       critNorm = critNorm ? crit.total() / critNorm : 1;
     }
 
@@ -69,11 +82,47 @@ function parseExpression(arr: string[], n: number): Dice {
       save = op.call(save, parseBinaryArgument(arg, arr, n));
       saveNorm = saveNorm ? save.total() / saveNorm : 1;
     }
-
-    // TODO: Handle miss effects
+    
+    // Handle miss
     let miss: Dice |undefined;
     var missNorm = 1;
+
     if (arr[0] === 'm') {
+      assertToken(arr, 'm');
+      assertToken(arr, 'i');
+      assertToken(arr, 's');
+      assertToken(arr, 's');
+
+      const isHalfMiss = peek(arr, 'h');
+      if (isHalfMiss) {
+        assertToken(arr, 'h');
+      }
+      // TODO: make missh do half damage
+      const min = finalResult.minFace();
+      miss = new Dice();
+      miss.increment(min > 0 ? min : 1, finalResult.get(min));
+
+      // Total weight before modifying miss
+      missNorm = miss.total();
+
+      finalResult = finalResult.deleteFace(min);
+
+      if (isHalfMiss) {
+        //miss = miss.divideRoundDown(2);
+        const halfHit = miss.divideRoundDown(2);
+        miss = miss.combine(halfHit);
+      } else {
+        miss = op.call(miss, parseBinaryArgument(arg, arr, n));
+      }
+
+      // Total weight after miss has been updated
+      const afterMiss = miss.total();
+      missNorm = missNorm ? afterMiss / missNorm : 1;
+    } 
+    
+  
+
+    /**if (arr[0] === 'm') {
       assertToken(arr, 'm');
       assertToken(arr, 'i');
       assertToken(arr, 's');
@@ -88,7 +137,7 @@ function parseExpression(arr: string[], n: number): Dice {
 
       miss = op.call(miss, parseBinaryArgument(arg, arr, n));
       missNorm = missNorm ? miss.total() / missNorm : 1;
-    }
+    }*/
 
     var norm = finalResult.total();
     
@@ -98,18 +147,22 @@ function parseExpression(arr: string[], n: number): Dice {
     if (crit) {
       crit = crit.normalize(norm)
       finalResult = finalResult.normalize(critNorm);
+      critPortion = crit;
       finalResult = finalResult.combine(crit);
       norm *= critNorm
     }
     if (save) {
       save = save.normalize(norm)
       finalResult = finalResult.normalize(saveNorm);
+      //savePortion = save;
       finalResult = finalResult.combine(save);
       norm *= saveNorm;
     }
     if (miss) {
+      console.log("miss dice: ", miss);
       miss = miss.normalize(norm)
       finalResult = finalResult.normalize(missNorm);
+      missPortion = miss;
       finalResult = finalResult.combine(miss);
       norm *= missNorm;
     }
@@ -118,6 +171,13 @@ function parseExpression(arr: string[], n: number): Dice {
   }
 
   return finalResult;
+  /**return {
+    final: finalResult,
+    hitRoll,
+    critPortion,
+    missPortion,
+    //savePortion,
+  };*/
 }
 
 function parseArgument(s: string[], n: number): Dice | number {
