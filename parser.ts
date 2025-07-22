@@ -123,14 +123,14 @@ function parseExpression(arr: string[], n: number): Dice {
     if (crit) {
       crit = crit.normalize(norm)
       finalResult = finalResult.normalize(critNorm);
-      finalResult.metaData.crit = crit.getFaceMap();
+      finalResult.metadata.crit = crit.getFaceMap();
       finalResult = finalResult.combine(crit);
       norm *= critNorm
     }
     if (save) {
       save = save.normalize(norm)
       finalResult = finalResult.normalize(saveNorm);
-      finalResult.metaData.save = save.getFaceMap();
+      finalResult.metadata.save = save.getFaceMap();
       finalResult = finalResult.combine(save);
       norm *= saveNorm;
     }
@@ -138,7 +138,7 @@ function parseExpression(arr: string[], n: number): Dice {
       console.log("miss dice: ", miss);
       miss = miss.normalize(norm)
       finalResult = finalResult.normalize(missNorm);
-      finalResult.metaData.miss = miss.getFaceMap();
+      finalResult.metadata.miss = miss.getFaceMap();
       finalResult = finalResult.combine(miss);
       norm *= missNorm;
     }
@@ -147,7 +147,7 @@ function parseExpression(arr: string[], n: number): Dice {
       console.log("pc dice: ", pc);
       pc = pc.normalize(norm)
       finalResult = finalResult.normalize(pcNorm);
-      finalResult.metaData.pc = pc.getFaceMap();
+      finalResult.metadata.pc = pc.getFaceMap();
       finalResult = finalResult.combine(pc);
       norm *= pcNorm;
     }

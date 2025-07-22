@@ -9,7 +9,7 @@ function testExpression(expr: string, n: number = 0): void {
     console.log(`Total: ${result.total()}`);
     console.log(`Average: ${result.average()}`);
     console.log(`Percent:`, result.percent());
-    console.log(`Meta data: `, result.metaData)
+    console.log(`Meta data: `, result.metadata)
     console.log('------------------------');
   } catch (e) {
     console.error(`Error parsing "${expr}":`, e);

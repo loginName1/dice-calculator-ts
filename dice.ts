@@ -5,7 +5,7 @@
 export class Dice {
   private faces: Map<number | string, number>;
   public privateData: Record<string, any>;
-  public metaData: {
+  public metadata: {
     crit?: Map<number | string, number>;
     miss?: Map<number | string, number>;
     save?: Map<number | string, number>;
@@ -67,7 +67,7 @@ export class Dice {
     }
 
     result.privateData = { ...this.privateData };
-    result.metaData = { ...this.metaData };
+    result.metadata = { ...this.metadata };
     return result;
   }
 
@@ -152,7 +152,7 @@ export class Dice {
 
     // Copy privateData if needed
     result.privateData = { ...this.privateData };
-    result.metaData = { ...this.metaData };
+    result.metadata = { ...this.metadata };
     return result;
   }
 
@@ -244,7 +244,7 @@ export class Dice {
     }
 
     result.privateData = { ...this.privateData };
-    result.metaData = { ...this.metaData };
+    result.metadata = { ...this.metadata };
     return result;
   }
 
@@ -260,7 +260,7 @@ export class Dice {
     }
 
     result.privateData = { ...this.privateData };
-    result.metaData = { ...this.metaData };
+    result.metadata = { ...this.metadata };
     return result;
   }
 
@@ -306,7 +306,7 @@ export class Dice {
     }
 
     result.privateData = { ...this.privateData, except: other };
-    result.metaData = { ...this.metaData };
+    result.metadata = { ...this.metadata };
     return result;
   }
 
@@ -327,7 +327,7 @@ export class Dice {
     }
 
     result.privateData = { ...this.privateData };
-    result.metaData = { ...this.metaData };
+    result.metadata = { ...this.metadata };
     return result;
   }
 
