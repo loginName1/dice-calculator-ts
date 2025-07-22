@@ -2,15 +2,6 @@ import { Dice } from './dice'; // adjust path as needed
 
 type DiceOperation = ((this: Dice, other: Dice | number) => Dice) & { unary?: boolean };
 
-type DiceResult = {
-  final: Dice;             // The final output distribution after all modifiers
-  hitRoll?: Dice;          // To-hit roll (e.g., d20 + modifier)
-  hitPortion?: Dice;       // Normal hit contribution
-  critPortion?: Dice;      // Just the critical hit contribution
-  missPortion?: Dice;      // Damage dealt on miss
-  //savePortion?: Dice;      // Damage from saving throws
-  //explodedPortion?: Dice;  // Optional: exploded results (if you add exploding dice)
-};
 
 export function parse(expression: string, n: number = 0): Dice {
   const cleaned = expression.replace(/ /g, '').toLowerCase();
@@ -31,10 +22,7 @@ function parseExpression(arr: string[], n: number): Dice {
 
   let op = parseOperation(arr);
   let finalResult = result;
-  let hitRoll: Dice | undefined;
-  let critPortion: Dice | undefined;
-  let missPortion: Dice | undefined;
-  //let savePortion: Dice | undefined;
+
   while (op != null) {
     const arg = !op.unary ? parseArgument(arr, n) : finalResult;
 
@@ -101,11 +89,7 @@ function parseExpression(arr: string[], n: number): Dice {
 
       pc = op.call(pc, parseBinaryArgument(arg, arr, n)).divideRoundDown(2); // parse the damage
       console.log("pc after damage parse: ", pc)
-      /**const half = pc instanceof Dice
-        ? pc.divideRoundDown(2)
-        : Dice.scalar(pc).divideRoundDown(2);
-
-      pc = pc.combine(half);*/
+      
       const missAfter = pc.total();
       pcNorm = missBefore ? missAfter / missBefore : 1;
     }
@@ -139,14 +123,14 @@ function parseExpression(arr: string[], n: number): Dice {
     if (crit) {
       crit = crit.normalize(norm)
       finalResult = finalResult.normalize(critNorm);
-      critPortion = crit;
+      finalResult.metaData.crit = crit.getFaceMap();
       finalResult = finalResult.combine(crit);
       norm *= critNorm
     }
     if (save) {
       save = save.normalize(norm)
       finalResult = finalResult.normalize(saveNorm);
-      //savePortion = save;
+      finalResult.metaData.save = save.getFaceMap();
       finalResult = finalResult.combine(save);
       norm *= saveNorm;
     }
@@ -154,7 +138,7 @@ function parseExpression(arr: string[], n: number): Dice {
       console.log("miss dice: ", miss);
       miss = miss.normalize(norm)
       finalResult = finalResult.normalize(missNorm);
-      missPortion = miss;
+      finalResult.metaData.miss = miss.getFaceMap();
       finalResult = finalResult.combine(miss);
       norm *= missNorm;
     }
@@ -163,7 +147,7 @@ function parseExpression(arr: string[], n: number): Dice {
       console.log("pc dice: ", pc);
       pc = pc.normalize(norm)
       finalResult = finalResult.normalize(pcNorm);
-      //pcPortion = pc;
+      finalResult.metaData.pc = pc.getFaceMap();
       finalResult = finalResult.combine(pc);
       norm *= pcNorm;
     }
@@ -172,13 +156,6 @@ function parseExpression(arr: string[], n: number): Dice {
   }
 
   return finalResult;
-  /**return {
-    final: finalResult,
-    hitRoll,
-    critPortion,
-    missPortion,
-    //savePortion,
-  };*/
 }
 
 function parseArgument(s: string[], n: number): Dice | number {

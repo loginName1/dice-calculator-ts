@@ -5,6 +5,12 @@
 export class Dice {
   private faces: Map<number | string, number>;
   public privateData: Record<string, any>;
+  public metaData: {
+    crit?: Map<number | string, number>;
+    miss?: Map<number | string, number>;
+    save?: Map<number | string, number>;
+    pc?: Map<number | string, number>;
+  } = {};
 
   constructor(x: number = 0) {
     this.faces = new Map();
@@ -61,12 +67,17 @@ export class Dice {
     }
 
     result.privateData = { ...this.privateData };
+    result.metaData = { ...this.metaData };
     return result;
   }
 
   // PUBLIC FUNTIONS
   public getFaceEntries(): [number | string, number][] {
     return Array.from(this.faces.entries());
+  }
+
+  public getFaceMap(): Map<number | string, number> {
+    return new Map(this.faces);
   }
 
   public get(face: number | string): number {
@@ -141,7 +152,7 @@ export class Dice {
 
     // Copy privateData if needed
     result.privateData = { ...this.privateData };
-
+    result.metaData = { ...this.metaData };
     return result;
   }
 
@@ -233,6 +244,7 @@ export class Dice {
     }
 
     result.privateData = { ...this.privateData };
+    result.metaData = { ...this.metaData };
     return result;
   }
 
@@ -248,6 +260,7 @@ export class Dice {
     }
 
     result.privateData = { ...this.privateData };
+    result.metaData = { ...this.metaData };
     return result;
   }
 
@@ -293,6 +306,7 @@ export class Dice {
     }
 
     result.privateData = { ...this.privateData, except: other };
+    result.metaData = { ...this.metaData };
     return result;
   }
 
@@ -313,6 +327,7 @@ export class Dice {
     }
 
     result.privateData = { ...this.privateData };
+    result.metaData = { ...this.metaData };
     return result;
   }
 
